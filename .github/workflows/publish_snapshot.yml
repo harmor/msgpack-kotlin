@@ -1,0 +1,33 @@
+name: Publish snapshot
+
+on:
+  push:
+    branches: [ master, feature/*, kotlin-* ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  publish-snapshot:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Publish Snapshot
+        env:
+          SONATYPE_NEXUS_USERNAME: ${{ secrets.SONATYPE_NEXUS_USERNAME }}
+          SONATYPE_NEXUS_PASSWORD: ${{ secrets.SONATYPE_NEXUS_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNAPSHOT: 'TRUE'
+        run: ./gradlew publish
+
+      - name: Archive msgpack-kotlin publications dir
+        uses: actions/upload-artifact@v1
+        with:
+          name: publications-${{ matrix.os }}
+          path: msgpack-kotlin/core/build/publications
+
+
